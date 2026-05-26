@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 // Sample mock chat messages with varied dates and times in UTC
@@ -48,56 +49,20 @@ const initialMessages = [
 
 export default function GroupChatChallenge() {
   const [messages, setMessages] = useState(initialMessages);
-  const [newText, setNewText] = useState("");
-  const [newSender, setNewSender] = useState("You");
 
-  // Function to format timestamp strictly in UTC
-  const formatUTCDetails = (timestampStr) => {
-    try {
-      const date = new Date(timestampStr);
-      if (isNaN(date.getTime())) {
-        return { dateStr: 'Invalid Date', timeStr: 'Invalid Time' };
-      }
+  const sortMessagesByDate = messages.reduce((acc,msg)=>{
+    const getDate = new Date(msg.timestamp).toDateString()
+    console.log(getDate)
 
-      // Format Date in UTC
-      const dateStr = date.toLocaleDateString('en-US', {
-        timeZone: 'UTC',
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-
-      // Format Time in UTC
-      const timeStr = date.toLocaleTimeString('en-US', {
-        timeZone: 'UTC',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }) + ' UTC';
-
-      return { dateStr, timeStr };
-    } catch (e) {
-      return { dateStr: 'Error Parsing', timeStr: 'Error Parsing' };
+    if(!acc[getDate]){
+      acc[getDate]=[];
     }
-  };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!newText.trim()) return;
+    acc[getDate].push(msg);
+    return acc;
+  },{})
 
-    // Create message with current real UTC time
-    const newMsg = {
-      id: `m-${Date.now()}`,
-      text: newText.trim(),
-      timestamp: new Date().toISOString(), // Standard ISO format in UTC (ends in 'Z')
-      sender: newSender.trim() || "You"
-    };
-
-    setMessages([...messages, newMsg]);
-    setNewText("");
-  };
+console.log(sortMessagesByDate)
 
   return (
     <div className="chat-challenge-container">
@@ -108,62 +73,46 @@ export default function GroupChatChallenge() {
         </p>
       </div>
 
-      {/* Input controls to send a mock message */}
-      <form onSubmit={handleSendMessage} style={{
-        display: 'flex',
-        gap: '12px',
-        marginBottom: '28px',
-        background: 'var(--glass-bg)',
-        border: '1px solid var(--border)',
-        padding: '16px',
-        borderRadius: '12px',
-        alignItems: 'flex-end',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)' }}>Sender Name</label>
-          <input
-            type="text"
-            className="sidebar-search-input"
-            style={{ padding: '8px 12px' }}
-            value={newSender}
-            onChange={(e) => setNewSender(e.target.value)}
-            placeholder="Name..."
-          />
-        </div>
-        <div style={{ flex: '3 1 350px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)' }}>Message Content</label>
-          <input
-            type="text"
-            className="sidebar-search-input"
-            style={{ padding: '8px 12px' }}
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            placeholder="Type a test message..."
-            required
-          />
-        </div>
-        <button type="submit" className="action-btn" style={{ padding: '9px 20px', height: '40px' }}>
-          Send
-        </button>
-      </form>
-
       {/* List of Chat Cards */}
-      <div className="chat-card-list">
+      {/* <div className="chat-card-list">
         {messages.map((msg) => {
-          const { dateStr, timeStr } = formatUTCDetails(msg.timestamp);
+     
           return (
             <div key={msg.id} className="chat-msg-card">
               <div className="chat-card-header">
                 <span className="chat-card-sender">{msg.sender}</span>
                 <div className="chat-card-timestamp-details">
-                  <span className="timestamp-utc-date">{dateStr}</span>
-                  <span className="timestamp-utc-time">{timeStr}</span>
+                  <span className="timestamp-utc-date">{new Date(msg.timestamp).toDateString()}</span>
+                  <span className="timestamp-utc-time">{new Date(msg.timestamp).toTimeString()}</span>
                 </div>
               </div>
               <p className="chat-card-body">{msg.text}</p>
             </div>
           );
+        })}
+      </div> */}
+      <div className="chat-card-list">
+        {Object.entries(sortMessagesByDate).map(([date,values])=>{
+          return (
+            <div key={date}>
+              {date}
+              {values.map((msg) => {
+     
+          return (
+            <div key={msg.id} className="chat-msg-card">
+              <div className="chat-card-header">
+                <span className="chat-card-sender">{msg.sender}</span>
+                <div className="chat-card-timestamp-details">
+                  <span className="timestamp-utc-date">{new Date(msg.timestamp).toDateString()}</span>
+                  <span className="timestamp-utc-time">{new Date(msg.timestamp).toTimeString()}</span>
+                </div>
+              </div>
+              <p className="chat-card-body">{msg.text}</p>
+            </div>
+          );
+        })}
+            </div>
+          )
         })}
       </div>
     </div>
